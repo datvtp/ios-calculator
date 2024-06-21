@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useWindowDimensions } from "react-native";
 
 import styled from "styled-components";
@@ -38,7 +39,7 @@ const ButtonsRow = styled.View`
   flex-direction: row;
 `;
 
-const StyledButton = styled.TouchableOpacity`
+const StyledTouchableOpacity = styled.TouchableOpacity`
   width: 100%;
   height: 100%;
   background-color: ${(p) => p.backgroundColor};
@@ -58,15 +59,23 @@ const Button = ({
   text,
   backgroundColor = "#333333",
   textColor = "#FFFFFF",
+  onPress = () => {},
 }) => {
   const h = height ?? width;
   const w = width;
 
+  const onDoPress = () => {
+    onPress(text);
+  };
+
   return (
     <ButtonContainer width={w} height={h}>
-      <StyledButton backgroundColor={backgroundColor}>
+      <StyledTouchableOpacity
+        backgroundColor={backgroundColor}
+        onPress={onDoPress}
+      >
         <StyledText color={textColor}>{text}</StyledText>
-      </StyledButton>
+      </StyledTouchableOpacity>
     </ButtonContainer>
   );
 };
@@ -75,10 +84,122 @@ export default function App() {
   const { width } = useWindowDimensions();
   const buttonContainerWidth = width / 4 - 5;
 
+  const [firstValue, setFirstValue] = useState("");
+  const [operator, setOperator] = useState("");
+  const [secondValue, setSecondValue] = useState("");
+  const [clearLabel, setClearLabel] = useState("AC");
+
+  const onKeyPress = (key) => {
+    switch (key) {
+      case "AC":
+        setFirstValue("");
+        setOperator("");
+        setSecondValue("");
+        break;
+      case "C":
+        if (secondValue !== "") {
+          setSecondValue("");
+        } else {
+          setFirstValue("");
+        }
+
+        setClearLabel("AC");
+        break;
+      case "+/-":
+        if (firstValue !== "" || secondValue !== "") {
+          if (firstValue !== "" && secondValue === "") {
+            setFirstValue(parseFloat(firstValue * -1).toString());
+          } else {
+            setSecondValue(parseFloat(secondValue * -1).toString());
+          }
+        }
+        break;
+      case "%":
+        calculate(firstValue, key, secondValue);
+        break;
+      case "/":
+      case "x":
+      case "-":
+      case "+":
+        if (secondValue !== "") {
+          calculate(firstValue, operator, secondValue);
+        } else {
+          setOperator(key);
+        }
+        break;
+      case "=":
+        calculate(firstValue, operator, secondValue);
+        break;
+      case "1":
+      case "2":
+      case "3":
+      case "4":
+      case "5":
+      case "6":
+      case "7":
+      case "8":
+      case "9":
+      case "0":
+      case ",":
+        setClearLabel("C");
+        if (operator === "") {
+          setFirstValue((e) => `${e}${key}`);
+        } else {
+          setSecondValue((e) => `${e}${key}`);
+        }
+        break;
+    }
+  };
+
+  const displayText = (() => {
+    if (secondValue !== "") return secondValue;
+    if (firstValue === "") return "0";
+
+    return firstValue;
+  })();
+
+  const calculate = (a = "", o = "", b = "") => {
+    let result = 0;
+
+    a = a.replace(",", ".");
+    b = b.replace(",", ".");
+
+    switch (o) {
+      case "%":
+        result = parseFloat(a) / 100;
+        break;
+      case "/":
+        result = parseFloat(a) / parseFloat(b);
+        break;
+      case "x":
+        result = parseFloat(a) * parseFloat(b);
+        break;
+      case "-":
+        result = parseFloat(a) - parseFloat(b);
+        break;
+      case "+":
+        result = parseFloat(a) + parseFloat(b);
+        break;
+    }
+
+    if (result % 1 !== 0) {
+      const digitsValue = result.toString().split(".")[1];
+      if (digitsValue && digitsValue.length > 6) {
+        result = result.toFixed(6);
+      }
+    }
+
+    result = result.toString().replace(".", ",");
+
+    setFirstValue(result);
+    setOperator("");
+    setSecondValue("");
+  };
+
   return (
     <Container>
       <DisplayContainer>
-        <DisplayText>0</DisplayText>
+        <DisplayText>{displayText}</DisplayText>
       </DisplayContainer>
 
       <ButtonsContainer>
@@ -87,54 +208,97 @@ export default function App() {
             width={`${buttonContainerWidth}px`}
             backgroundColor="#A5A5A5"
             textColor="#000"
-            text="AC"
+            text={clearLabel}
+            onPress={onKeyPress}
           />
           <Button
             width={`${buttonContainerWidth}px`}
             backgroundColor="#A5A5A5"
             textColor="#000"
             text="+/-"
+            onPress={onKeyPress}
           />
           <Button
             width={`${buttonContainerWidth}px`}
             backgroundColor="#A5A5A5"
             textColor="#000"
             text="%"
+            onPress={onKeyPress}
           />
           <Button
             width={`${buttonContainerWidth}px`}
             backgroundColor="#FF9F0A"
             text="/"
+            onPress={onKeyPress}
           />
         </ButtonsRow>
         <ButtonsRow>
-          <Button width={`${buttonContainerWidth}px`} text="7" />
-          <Button width={`${buttonContainerWidth}px`} text="8" />
-          <Button width={`${buttonContainerWidth}px`} text="9" />
+          <Button
+            width={`${buttonContainerWidth}px`}
+            text="7"
+            onPress={onKeyPress}
+          />
+          <Button
+            width={`${buttonContainerWidth}px`}
+            text="8"
+            onPress={onKeyPress}
+          />
+          <Button
+            width={`${buttonContainerWidth}px`}
+            text="9"
+            onPress={onKeyPress}
+          />
           <Button
             width={`${buttonContainerWidth}px`}
             backgroundColor="#FF9F0A"
             text="x"
+            onPress={onKeyPress}
           />
         </ButtonsRow>
         <ButtonsRow>
-          <Button width={`${buttonContainerWidth}px`} text="4" />
-          <Button width={`${buttonContainerWidth}px`} text="5" />
-          <Button width={`${buttonContainerWidth}px`} text="6" />
+          <Button
+            width={`${buttonContainerWidth}px`}
+            text="4"
+            onPress={onKeyPress}
+          />
+          <Button
+            width={`${buttonContainerWidth}px`}
+            text="5"
+            onPress={onKeyPress}
+          />
+          <Button
+            width={`${buttonContainerWidth}px`}
+            text="6"
+            onPress={onKeyPress}
+          />
           <Button
             width={`${buttonContainerWidth}px`}
             backgroundColor="#FF9F0A"
             text="-"
+            onPress={onKeyPress}
           />
         </ButtonsRow>
         <ButtonsRow>
-          <Button width={`${buttonContainerWidth}px`} text="1" />
-          <Button width={`${buttonContainerWidth}px`} text="2" />
-          <Button width={`${buttonContainerWidth}px`} text="3" />
+          <Button
+            width={`${buttonContainerWidth}px`}
+            text="1"
+            onPress={onKeyPress}
+          />
+          <Button
+            width={`${buttonContainerWidth}px`}
+            text="2"
+            onPress={onKeyPress}
+          />
+          <Button
+            width={`${buttonContainerWidth}px`}
+            text="3"
+            onPress={onKeyPress}
+          />
           <Button
             width={`${buttonContainerWidth}px`}
             backgroundColor="#FF9F0A"
             text="+"
+            onPress={onKeyPress}
           />
         </ButtonsRow>
         <ButtonsRow>
@@ -142,12 +306,18 @@ export default function App() {
             width={`${width / 2 - 10}px`}
             height={`${buttonContainerWidth}px`}
             text="0"
+            onPress={onKeyPress}
           />
-          <Button width={`${buttonContainerWidth}px`} text="," />
+          <Button
+            width={`${buttonContainerWidth}px`}
+            text=","
+            onPress={onKeyPress}
+          />
           <Button
             width={`${buttonContainerWidth}px`}
             backgroundColor="#FF9F0A"
             text="="
+            onPress={onKeyPress}
           />
         </ButtonsRow>
       </ButtonsContainer>
