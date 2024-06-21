@@ -18,7 +18,7 @@ const DisplayContainer = styled.View`
 
 const DisplayText = styled.Text`
   color: white;
-  font-size: 60px;
+  font-size: 70px;
 `;
 
 const ButtonsContainer = styled.View`
@@ -97,7 +97,7 @@ export default function App() {
         setSecondValue("");
         break;
       case "C":
-        if (secondValue !== "") {
+        if (secondValue) {
           setSecondValue("");
         } else {
           setFirstValue("");
@@ -106,8 +106,8 @@ export default function App() {
         setClearLabel("AC");
         break;
       case "+/-":
-        if (firstValue !== "" || secondValue !== "") {
-          if (firstValue !== "" && secondValue === "") {
+        if (firstValue || secondValue) {
+          if (firstValue && !secondValue) {
             setFirstValue(parseFloat(firstValue * -1).toString());
           } else {
             setSecondValue(parseFloat(secondValue * -1).toString());
@@ -121,7 +121,7 @@ export default function App() {
       case "x":
       case "-":
       case "+":
-        if (secondValue !== "") {
+        if (secondValue) {
           calculate(firstValue, operator, secondValue);
         } else {
           setOperator(key);
@@ -142,7 +142,7 @@ export default function App() {
       case "0":
       case ",":
         setClearLabel("C");
-        if (operator === "") {
+        if (!operator) {
           setFirstValue((e) => `${e}${key}`);
         } else {
           setSecondValue((e) => `${e}${key}`);
@@ -152,8 +152,8 @@ export default function App() {
   };
 
   const displayText = (() => {
-    if (secondValue !== "") return secondValue;
-    if (firstValue === "") return "0";
+    if (secondValue) return secondValue;
+    if (!firstValue) return "0";
 
     return firstValue;
   })();
