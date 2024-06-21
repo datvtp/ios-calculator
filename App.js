@@ -184,7 +184,7 @@ export default function App() {
 
     if (result % 1 !== 0) {
       const digitsValue = result.toString().split(".")[1];
-      if (digitsValue && digitsValue.length > 6) {
+      if (digitsValue.length > 6) {
         result = result.toFixed(6);
       }
     }
